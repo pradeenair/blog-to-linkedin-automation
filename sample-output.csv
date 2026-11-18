@@ -1,0 +1,76 @@
+Post_ID,Article_Title,Source_URL,Founder_ID,Day,Draft_Text,Editorial_Status,Editorial_Issues,Suggested_Revisions,Approval_Status,Approved_Text,Scheduled_Date,Published_URL
+FV01_Monday_20261118,Pet profile data starts at the checkout,https://www.refive.io/en/blog/pet-profile-data-from-receipts/,FV01,Monday,"Pet retail is one of the most predictable sectors in commerce. A 12 kg bag of large-breed adult food lasts a specific number of days. The food runs out on a schedule.
+
+Yet, for most brick-and-mortar retailers, the customer who buys that bag every month remains an anonymous line item in a sales report. The sale lands in the POS, the paper receipt leaves the store, and the data connection is severed. 
+
+You don’t know if it’s her first visit or her fortieth. You don’t know the dog’s life stage. Crucially, you don’t know if she will return in four weeks or if an automated subscription from an online giant will beat you to it.
+
+Online players don’t win on price alone; they win because they time the refill to the day. If you aren't using the transaction data already sitting in your POS to close that gap, you are essentially handing your regulars over to the competition.
+
+Why are we still treating predictable, high-frequency pet replenishment as a series of disconnected, anonymous events?",Needs Revision,"[""Narrative overlap with Willi Jansen's Monday post.""]","[""Lean more into the 'provocative' voice by framing the predictability as a strategic failure of brick-and-mortar retail compared to D2C giants.""]",Pending,,,
+FV01_Wednesday_20261118,Pet profile data starts at the checkout,https://www.refive.io/en/blog/pet-profile-data-from-receipts/,FV01,Wednesday,"Most pet retail chains try to capture pet data through a wall: the app sign-up form. 
+
+They ask for the dog’s name, breed, birthday, and weight before the owner has received a single bit of value. Unsurprisingly, most customers just want to pay and leave. This creates a data schism: a small group of 'loyal' app users with full profiles, and a massive silent majority of 'anonymous' shoppers who are effectively strangers.
+
+Progressive profiling flips this. Instead of a choice between 'anonymous' and 'complete profile', you build the picture one visit at a time. 
+
+The receipt is the starting point. 12 kg of dry food for a large breed tells you the size of the dog. A flea treatment for a specific weight band confirms it. A joint supplement suggests the dog is ageing. 
+
+Nobody had to fill in a form. The purchase history is the pet profile. If you can attach an email or WhatsApp number to that history at the checkout, you have everything you need to be useful.
+
+Are we over-complicating loyalty by demanding data upfront instead of earning it through the transaction history?",Pass,[],[],Approved,"Most pet retail chains try to capture pet data through a wall: the app sign-up form. 
+
+They ask for the dog’s name, breed, birthday, and weight before the owner has received a single bit of value. Unsurprisingly, most customers just want to pay and leave. This creates a data schism: a small group of 'loyal' app users with full profiles, and a massive silent majority of 'anonymous' shoppers who are effectively strangers.
+
+Progressive profiling flips this. Instead of a choice between 'anonymous' and 'complete profile', you build the picture one visit at a time. 
+
+The receipt is the starting point. 12 kg of dry food for a large breed tells you the size of the dog. A flea treatment for a specific weight band confirms it. A joint supplement suggests the dog is ageing. 
+
+Nobody had to fill in a form. The purchase history is the pet profile. If you can attach an email or WhatsApp number to that history at the checkout, you have everything you need to be useful.
+
+Are we over-complicating loyalty by demanding data upfront instead of earning it through the transaction history?",,
+FV01_Friday_20261118,Pet profile data starts at the checkout,https://www.refive.io/en/blog/pet-profile-data-from-receipts/,FV01,Friday,"There is a common misconception that you need a 20-field registration form to 'know' a customer for GDPR compliance. 
+
+In reality, reading pet characteristics from an identified customer’s purchase history falls under profiling (GDPR Article 4(4)). Provided you have a lawful basis—usually legitimate interest—and provide a clear way to object, you can use what a customer buys to serve them better.
+
+A receipt-based system allows you to move an owner up the 'Customer State Ladder' without friction. 
+1. Anonymous: You see the basket.
+2. Identified: You have a digital contact (email/WhatsApp) for the receipt.
+3. Opted-in: You have permission to send a reminder before the food runs out.
+4. Loyal: They eventually tell you the dog’s name or birthday because you’ve already proven you’re helpful.
+
+By the third bag, you know the dog’s size, age, and diet. You haven't forced a download or a login. You've simply used the data the customer gave you at the checkout.
+
+Is your CRM strategy waiting for a 'perfect' profile that will never come, while ignoring the rich data already on your receipts?",Needs Revision,"[""Contains specific legal claims regarding GDPR Article 4(4) and legitimate interest.""]","[""Flag for legal review to ensure the interpretation of 'profiling' under Article 4(4) aligns with current compliance standards.""]",Pending,,,
+FV02_Monday_20261118,Pet profile data starts at the checkout,https://www.refive.io/en/blog/pet-profile-data-from-receipts/,FV02,Monday,"A customer walks in, grabs the same bag of dog food she’s bought for years, and has a quick chat with the store manager who knows her dog's name. 
+
+Then she pays and leaves. To the CRM system, she’s a ghost. 
+
+The moment that paper receipt is printed, the retailer loses the only digital link to that transaction. We know what was bought, but we don’t know who bought it or when they’ll need it again. The store manager’s knowledge doesn't scale, and the data walks out the door on a piece of thermal paper.
+
+In pet retail, loyalty is often driven by the simple necessity of a hungry dog. While stores wait for customers to download an app, online subscriptions are already timing their next delivery to the day. 
+
+We need to bridge the gap between the store floor and the head office record.",Needs Revision,"[""Narrative overlap with Mitul Jain's Monday post.""]","[""Shift focus to the disconnect between the store manager's personal knowledge and the system's lack of data to fit the 'perspective close to retailers'.""]",Pending,,,
+FV02_Wednesday_20261118,Pet profile data starts at the checkout,https://www.refive.io/en/blog/pet-profile-data-from-receipts/,FV02,Wednesday,"How much can a single receipt tell you about a pet? Quite a lot, actually.
+
+If a customer buys a 12 kg bag of large-breed adult dry food, you don’t need to ask if they have a dog. You know the size, the life stage, and the preferred diet. If they return four weeks later for the same bag, you now know their feeding cycle.
+
+This is the core of progressive pet profiling. 
+
+Instead of asking for a breed and weight on a sign-up form, you read it from the basket. 
+- A joint supplement? The dog is likely senior.
+- A specific weight-band flea treatment? The dog’s size is confirmed.
+- Cat litter and dog food? It's a multi-pet household.
+
+The data is already there. By using digital receipts to identify the shopper at the checkout, you can build a useful profile over time without making the customer do any work.",Pass,[],[],Pending,,,
+FV02_Friday_20261118,Pet profile data starts at the checkout,https://www.refive.io/en/blog/pet-profile-data-from-receipts/,FV02,Friday,"Most retail engagement feels like an interrogation. 'What's your name? What's your email? What's your dog's birthday?'
+
+I prefer the 'give before you ask' approach. 
+
+When a customer scans a QR code for a digital receipt, they get what they want immediately. No app, no long forms. 
+
+Because you now have that purchase history, you can send a helpful reminder a few days before their dog food is due to run out. That is a service, not a sales pitch. 
+
+Once you’ve provided that value a few times, asking 'What’s his name?' or 'When’s his birthday?' feels natural. They are much more likely to answer because you’ve already shown you know them.
+
+Build the relationship first. The data will follow.",Pass,[],[],Pending,,,

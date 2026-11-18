@@ -1,0 +1,652 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyHour"
+            }
+          ]
+        },
+        "feedUrl": "https://www.refive.io/feed/"
+      },
+      "type": "n8n-nodes-base.rssFeedReadTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "5c4b078d-2203-43db-b9af-c762f8d53768",
+      "name": "RSS Feed Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst article = $('Code').first().json;\n\nconst icps = $('ICP_Segments').all().map(i => i.json);\nconst lifecycleStages = $('Lifecycle_Stages').all().map(i => i.json);\nconst strategicPriorities = $('Strategic_Priorities').all().map(i => i.json);\n\nreturn [{\n  json: {\n    article,\n    icps,\n    lifecycleStages,\n    strategicPriorities\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "e24a08f4-4646-42f4-b127-bc743226ee3a",
+      "name": "Prepare AI Classification Input"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst items = $input.all();\n\nreturn items.map(item => {\n  const data = item.json;\n\n  const html = data['content:encoded'] || '';\n\n  const content = html\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, '')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, '')\n    .replace(/<[^>]+>/g, ' ')\n    .replace(/&nbsp;/g, ' ')\n    .replace(/&amp;/g, '&')\n    .replace(/\\s+/g, ' ')\n    .trim();\n\n  return {\n    json: {\n      title: data.title,\n      url: data.link,\n      publishedAt: data.pubDate,\n      author: data.creator,\n      content: content\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "739458a1-7dd1-44a4-9726-fe00f1ad7b7f",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "YOUR_GOOGLE_SPREADSHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "ICP_Segments"
+        },
+        "options": {},
+        "resource": "sheet",
+        "operation": "read"
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        416,
+        0
+      ],
+      "id": "2d88c2e1-cede-4a44-a880-5698a05ad41d",
+      "name": "ICP_Segments"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "YOUR_GOOGLE_SPREADSHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Lifecycle_Stages"
+        },
+        "options": {},
+        "resource": "sheet",
+        "operation": "read"
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        624,
+        0
+      ],
+      "id": "3acc7416-24a0-4abd-8fa9-83282f185281",
+      "name": "Lifecycle_Stages",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "YOUR_GOOGLE_SPREADSHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Strategic_Priorities"
+        },
+        "options": {},
+        "resource": "sheet",
+        "operation": "read"
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        832,
+        0
+      ],
+      "id": "4a58f5aa-df76-484d-9afc-f556dc2ac1fb",
+      "name": "Strategic_Priorities",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=\n{{ `\nYou are a B2B retail technology content strategist.\n\nClassify the following blog article using ONLY the\nprovided reference tables.\n\nARTICLE:\n${JSON.stringify($json.article)}\n\nICP SEGMENTS:\n${JSON.stringify($json.icps)}\n\nLIFECYCLE STAGES:\n${JSON.stringify($json.lifecycleStages)}\n\nSTRATEGIC PRIORITIES:\n${JSON.stringify($json.strategicPriorities)}\n\nTASK:\n1. Identify the primary ICP and any secondary ICPs.\n2. Identify the primary lifecycle stage and any secondary stage.\n3. Determine which strategic priorities the article\n   directly supports, if any.\n\nRULES:\n- Use only IDs from the supplied reference tables.\n- Base classifications on article evidence.\n- Do not force a match.\n- Strategic priorities are hypothetical, not confirmed\n  company objectives.\n- Return null when no suitable match exists.\n- Provide confidence scores between 0 and 1.\n- Return valid JSON only, without Markdown.\n\nOUTPUT FORMAT:\n{\n  \"primary_icp\": {\n    \"id\": null,\n    \"confidence\": 0,\n    \"reason\": \"\"\n  },\n  \"secondary_icps\": [],\n  \"primary_lifecycle\": {\n    \"id\": null,\n    \"confidence\": 0,\n    \"reason\": \"\"\n  },\n  \"secondary_lifecycle\": [],\n  \"strategic_alignment\": [\n    {\n      \"id\": \"\",\n      \"confidence\": 0,\n      \"reason\": \"\"\n    }\n  ],\n  \"human_review_required\": false\n}\n` }}\n",
+              "role": "user"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        1248,
+        0
+      ],
+      "id": "bfaa7378-cf25-48e9-92d6-51a6c4456585",
+      "name": "Gemini - Classify Article"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst response = $input.first().json;\n\nconst text = response.content.parts\n  .map(part => part.text || '')\n  .join('')\n  .replace(/```json|```/g, '')\n  .trim();\n\nconst classification = JSON.parse(text);\n\nconst scores = [\n  classification.primary_icp?.confidence,\n  classification.primary_lifecycle?.confidence,\n  ...(classification.strategic_alignment || [])\n    .map(item => item.confidence)\n].filter(score => typeof score === 'number');\n\nconst lowConfidence = scores.some(score => score < 0.75);\n\nclassification.human_review_required =\n  lowConfidence ||\n  !classification.primary_icp?.id ||\n  !classification.primary_lifecycle?.id;\n\nreturn [{\n  json: {\n    article: $('Prepare AI Classification Input').first().json.article,\n    classification,\n    human_review_required: classification.human_review_required,\n    strategic_alignment_status: 'hypothetical'\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        0
+      ],
+      "id": "cb28010c-d82d-4cf8-b292-4931e0b35c28",
+      "name": "Parse Classification"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "YOUR_GOOGLE_SPREADSHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Founder_Voices"
+        },
+        "options": {},
+        "resource": "sheet",
+        "operation": "read"
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1808,
+        0
+      ],
+      "id": "0eafd995-fe94-42f4-89be-e6797aa640ec",
+      "name": "Founder_Voices",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst previous = $('Parse Classification').first().json;\n\nconst founders = $('Founder_Voices')\n  .all()\n  .map(item => item.json);\n\nif (founders.length !== 2) {\n  throw new Error('Expected exactly two founder profiles');\n}\n\nreturn [{\n  json: {\n    article: previous.article,\n    classification: previous.classification,\n    founders,\n    generation_rules: {\n      posts_per_founder: 3,\n      total_posts: 6,\n      require_human_approval: true,\n      prohibit_invented_claims: true,\n      prohibit_invented_experiences: true\n    }\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2016,
+        0
+      ],
+      "id": "f7082d5a-53dd-4519-b12a-23b11c2dc5eb",
+      "name": "Prepare LinkedIn Generation Input"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=\n{{ `\nYou are a senior B2B content strategist writing\nLinkedIn posts for the co-founders of refive.\n\nSOURCE ARTICLE:\n${JSON.stringify($json.article)}\n\nCONTENT CLASSIFICATION:\n${JSON.stringify($json.classification)}\n\nFOUNDER VOICE PROFILES:\n${JSON.stringify($json.founders)}\n\nTASK:\nGenerate 3 LinkedIn posts for each founder,\n6 posts in total, for one publishing week.\n\nFor each founder, create:\n1. Monday: A problem or industry insight.\n2. Wednesday: An educational or practical insight.\n3. Friday: A distinct perspective or takeaway.\n\nRULES:\n- Follow each founder's supplied voice profile.\n- Give the founders different angles, not rewrites\n  of the same post.\n- Match the article's primary ICP and lifecycle stage.\n- Use strategic priorities as context, not forced topics.\n- Ground factual claims in the source article.\n- Never invent personal experiences, conversations,\n  statistics, customer results, or events.\n- Never invent quotes attributed to either founder.\n- Avoid generic AI phrases and promotional language.\n- Use natural British English.\n- Do not include hashtags unless genuinely useful.\n- Do not add unsupported links.\n- Each post must stand alone.\n- Keep every post as a draft requiring human approval.\n\nReturn ONLY valid JSON in this structure:\n\n{\n  \"posts\": [\n    {\n      \"founder_id\": \"FV01\",\n      \"founder_name\": \"Mitul K. Jain\",\n      \"day\": \"Monday\",\n      \"angle\": \"\",\n      \"post_text\": \"\",\n      \"source_url\": \"\",\n      \"approval_status\": \"Pending\"\n    }\n  ]\n}\n\nReturn exactly 6 posts: 3 for FV01 and 3 for FV02.\n` }}\n",
+              "role": "user"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        2224,
+        0
+      ],
+      "id": "9c2ca15e-d1dd-4cd8-b53c-69d4d68649cf",
+      "name": "Gemini - Generate LinkedIn Posts"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=\n{{ `\nYou are the editorial quality controller for\nrefive's B2B LinkedIn content.\n\nSOURCE ARTICLE:\n${JSON.stringify($('Prepare LinkedIn Generation Input').first().json.article)}\n\nFOUNDER VOICE PROFILES:\n${JSON.stringify($('Prepare LinkedIn Generation Input').first().json.founders)}\n\nGENERATED DRAFTS:\n${$json.content.parts.map(p => p.text || '').join('')}\n\nTASK:\nReview all 6 LinkedIn posts.\n\nCHECK:\n1. Factual accuracy against the source article.\n2. Unsupported statistics, claims or assumptions.\n3. Legal, GDPR or compliance claims needing expert review.\n4. Invented founder experiences, opinions or customer stories.\n5. Whether each post matches its founder's voice profile.\n6. Repetition across posts, including between founders.\n7. Excessive promotional language or generic AI phrasing.\n\nRULES:\n- Treat inferred customer characteristics as possibilities,\n  not verified facts.\n- Flag legal claims for human expert review.\n- Do not introduce new facts.\n- Preserve each founder's distinct writing style.\n- Suggest specific improvements where necessary.\n- Do not approve or publish anything.\n- Return valid JSON only, without Markdown.\n\nOUTPUT FORMAT:\n{\n  \"overall_assessment\": \"\",\n  \"posts\": [\n    {\n      \"founder_id\": \"\",\n      \"day\": \"\",\n      \"editorial_status\": \"Pass or Needs Revision\",\n      \"issues\": [],\n      \"suggested_revisions\": [],\n      \"revised_post_text\": \"\"\n    }\n  ],\n  \"human_approval_required\": true\n}\n\nReturn exactly 6 reviewed posts.\nIf a post passes, return its original text\nin revised_post_text.\nIf it needs revision, provide a corrected draft\nin revised_post_text, retaining any unresolved\nlegal or factual issues in the issues array.\n` }}\n",
+              "role": "user"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        2576,
+        0
+      ],
+      "id": "35fc824b-df48-4699-bb0f-aca91dcdc799",
+      "name": "Gemini - Editorial Review"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst response = $input.first().json;\n\nconst text = response.content.parts\n  .map(part => part.text || '')\n  .join('')\n  .replace(/```json|```/g, '')\n  .trim();\n\nconst review = JSON.parse(text);\n\nif (!Array.isArray(review.posts) || review.posts.length !== 6) {\n  throw new Error('Expected exactly 6 reviewed posts');\n}\n\nconst article = $('Prepare LinkedIn Generation Input')\n  .first().json.article;\n\nreturn review.posts.map(post => ({\n  json: {\n    founder_id: post.founder_id,\n    day: post.day,\n    editorial_status: post.editorial_status,\n    editorial_issues: post.issues,\n    suggested_revisions: post.suggested_revisions,\n    draft_text: post.revised_post_text,\n    source_url: article.url,\n    article_title: article.title,\n    approval_status: 'Pending',\n    human_approval_required: true\n  }\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2928,
+        0
+      ],
+      "id": "303ee014-1bb9-4d47-929a-6943e836008d",
+      "name": "Parse Editorial Review"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "YOUR_GOOGLE_SPREADSHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "LinkedIn_Approval_Queue"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Post_ID": "={{ $json.founder_id + '_' + $json.day + '_' + $now.toFormat('yyyyMMdd') }}",
+            "Article_Title": "={{ $json.article_title }}",
+            "Source_URL": "={{ $json.source_url }}",
+            "Founder_ID": "={{ $json.founder_id }}",
+            "Day": "={{ $json.day }}",
+            "Draft_Text": "={{ $json.draft_text }}",
+            "Editorial_Status": "={{ $json.editorial_status }}",
+            "Editorial_Issues": "={{ JSON.stringify($json.editorial_issues) }}",
+            "Suggested_Revisions": "={{ JSON.stringify($json.suggested_revisions) }}",
+            "Approval_Status": "={{ $json.approval_status }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Post_ID",
+              "displayName": "Post_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Article_Title",
+              "displayName": "Article_Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Source_URL",
+              "displayName": "Source_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Founder_ID",
+              "displayName": "Founder_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Day",
+              "displayName": "Day",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Draft_Text",
+              "displayName": "Draft_Text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Editorial_Status",
+              "displayName": "Editorial_Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Editorial_Issues",
+              "displayName": "Editorial_Issues",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Suggested_Revisions",
+              "displayName": "Suggested_Revisions",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Approval_Status",
+              "displayName": "Approval_Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Approved_Text",
+              "displayName": "Approved_Text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Scheduled_Date",
+              "displayName": "Scheduled_Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Published_URL",
+              "displayName": "Published_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "RAW"
+        },
+        "resource": "sheet"
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3136,
+        0
+      ],
+      "id": "f82e8c44-4995-4646-941c-f0800cf3238f",
+      "name": "Append row in sheet"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "YOUR_GOOGLE_SPREADSHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "LinkedIn_Approval_Queue"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Approval_Status",
+              "lookupValue": "Approved"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": false
+        },
+        "resource": "sheet",
+        "operation": "read"
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3344,
+        220
+      ],
+      "id": "bf31924d-5ab8-485a-b0f8-0dee0fb9786a",
+      "name": "Get Approved Posts",
+      "executeOnce": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        3104,
+        220
+      ],
+      "id": "02f86de8-4faa-4414-83b0-ff4729bacfe5",
+      "name": "Check Approvals Manually"
+    }
+  ],
+  "connections": {
+    "RSS Feed Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "ICP_Segments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ICP_Segments": {
+      "main": [
+        [
+          {
+            "node": "Lifecycle_Stages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lifecycle_Stages": {
+      "main": [
+        [
+          {
+            "node": "Strategic_Priorities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Strategic_Priorities": {
+      "main": [
+        [
+          {
+            "node": "Prepare AI Classification Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare AI Classification Input": {
+      "main": [
+        [
+          {
+            "node": "Gemini - Classify Article",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini - Classify Article": {
+      "main": [
+        [
+          {
+            "node": "Parse Classification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Classification": {
+      "main": [
+        [
+          {
+            "node": "Founder_Voices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Founder_Voices": {
+      "main": [
+        [
+          {
+            "node": "Prepare LinkedIn Generation Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare LinkedIn Generation Input": {
+      "main": [
+        [
+          {
+            "node": "Gemini - Generate LinkedIn Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini - Generate LinkedIn Posts": {
+      "main": [
+        [
+          {
+            "node": "Gemini - Editorial Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini - Editorial Review": {
+      "main": [
+        [
+          {
+            "node": "Parse Editorial Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Editorial Review": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Approved Posts": {
+      "main": [
+        []
+      ]
+    },
+    "Check Approvals Manually": {
+      "main": [
+        [
+          {
+            "node": "Get Approved Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "active": false,
+  "pinData": {}
+}
