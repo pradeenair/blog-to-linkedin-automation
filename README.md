@@ -1,6 +1,6 @@
-# refive blog-to-LinkedIn automation
+# blog-to-LinkedIn automation
 
-An n8n workflow that turns a refive blog article into six LinkedIn drafts, three each for Mitul K. Jain and Willi. Google Sheets holds the research and the human approval queue.
+An n8n workflow that turns a blog article into six LinkedIn drafts, three each per founder. Google Sheets holds the research and the human approval queue.
 
 ## Files
 
