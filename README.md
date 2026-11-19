@@ -18,6 +18,7 @@ An n8n workflow that turns a blog article into six LinkedIn drafts, three each p
 6. Review the draft against the article. Enter the final copy in `Approved_Text`, set `Approval_Status` to `Approved`, and run **Check Approvals Manually**. Confirm it retrieves approved rows and skips pending rows.
 
 ## Workflow and workbook
+![refive Content Automation Workflow](n8n-workflow.png)
 
 The RSS trigger polls the refive feed hourly when active. It extracts article text, then Gemini classifies it using `ICP_Segments`, `Lifecycle_Stages` and `Strategic_Priorities`. The strategic priorities are labelled hypothetical. Gemini drafts Monday, Wednesday and Friday posts using the two profiles in `Founder_Voices`. A second Gemini pass checks claims, repetition and voice before the drafts are appended to `LinkedIn_Approval_Queue` for human review. The workflow stops at draft storage or approval retrieval. It has no publishing integration.
 
